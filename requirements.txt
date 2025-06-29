@@ -1,0 +1,3 @@
+pipecatcloud
+pipecat-ai[cartesia,daily,openai,silero]
+python-dotenv~=1.0.1
