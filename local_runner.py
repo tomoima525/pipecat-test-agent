@@ -15,6 +15,7 @@ async def configure(aiohttp_session: aiohttp.ClientSession):
     (url, token) = await configure_with_args(aiohttp_session)
     return (url, token)
 
+RECORD_VIDEO = os.getenv("RECORD_VIDEO")
 
 async def configure_with_args(aiohttp_session: aiohttp.ClientSession = None):
     key = os.getenv("DAILY_API_KEY")
@@ -29,8 +30,13 @@ async def configure_with_args(aiohttp_session: aiohttp.ClientSession = None):
         aiohttp_session=aiohttp_session,
     )
 
+    if RECORD_VIDEO:
+        properties = {"enable_prejoin_ui": False, "enable_recording": "cloud"}
+    else:
+        properties = {"enable_prejoin_ui": False}
+
     room = await daily_rest_helper.create_room(
-        DailyRoomParams(properties={"enable_prejoin_ui": False})
+        DailyRoomParams(properties=properties)
     )
     if not room.url:
         raise HTTPException(status_code=500, detail="Failed to create room")

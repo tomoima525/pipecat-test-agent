@@ -1,0 +1,51 @@
+"""
+Configuration file containing all strings and constants used in the bot application.
+"""
+
+# Environment variable names
+ENV_VARS = {
+    "LOCAL_RUN": "LOCAL_RUN",
+    "CARTESIA_API_KEY": "CARTESIA_API_KEY",
+    "OPENAI_API_KEY": "OPENAI_API_KEY",
+}
+
+# TTS Configuration
+TTS_CONFIG = {
+    "voice_id": "efe5d4cb-be7a-4aa6-9294-5ea6b762f837",
+}
+
+# LLM Configuration
+LLM_CONFIG = {
+    "model": "gpt-4o",
+}
+
+# Bot Names
+BOT_NAMES = {
+    "production": "Pipecat Bot",
+    "local": "Pipecat Local Bot",
+}
+
+# Event Handler Names
+EVENT_HANDLERS = {
+    "first_participant_joined": "on_first_participant_joined",
+    "participant_left": "on_participant_left",
+}
+
+# Log Messages
+LOG_MESSAGES = {
+    "import_error": "Could not import local_runner module. Local development mode may not work.",
+    "first_participant_joined": "First participant joined: {}",
+    "participant_left": "Participant left: {}",
+    "bot_initialized": "Bot process initialized {} {}",
+    "bot_completed": "Bot process completed",
+    "bot_error": "Error in bot process: {}",
+    "local_agent_url": "Talk to your voice agent here: {}",
+    "local_dev_error": "Error in local development mode: {}",
+    "local_run_failed": "Failed to run in local mode: {}",
+}
+
+# System Messages
+SYSTEM_MESSAGES = {
+    "recruiter_prompt": """You are a helpful assistant who can answer questions about WebRTC.""",
+    "start_conversation": "Please start with 'Hello World' and introduce yourself to the user.",
+} 

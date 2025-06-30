@@ -20,11 +20,21 @@ from pipecat.services.openai.llm import OpenAILLMService
 from pipecat.transports.services.daily import DailyParams, DailyTransport
 from pipecatcloud.agent import DailySessionArguments
 
+from config import (
+    ENV_VARS,
+    TTS_CONFIG,
+    LLM_CONFIG,
+    BOT_NAMES,
+    EVENT_HANDLERS,
+    LOG_MESSAGES,
+    SYSTEM_MESSAGES,
+)
+
 # Load environment variables
 load_dotenv(override=True)
 
 # Check if we're in local development mode
-LOCAL_RUN = os.getenv("LOCAL_RUN")
+LOCAL_RUN = os.getenv(ENV_VARS["LOCAL_RUN"])
 if LOCAL_RUN:
     import asyncio
     import webbrowser
@@ -32,7 +42,7 @@ if LOCAL_RUN:
     try:
         from local_runner import configure
     except ImportError:
-        logger.error("Could not import local_runner module. Local development mode may not work.")
+        logger.error(LOG_MESSAGES["import_error"])
 
 
 async def main(transport: DailyTransport):
@@ -42,15 +52,15 @@ async def main(transport: DailyTransport):
         transport: The DailyTransport instance
     """
     tts = CartesiaTTSService(
-        api_key=os.getenv("CARTESIA_API_KEY"), voice_id="efe5d4cb-be7a-4aa6-9294-5ea6b762f837"
+        api_key=os.getenv(ENV_VARS["CARTESIA_API_KEY"]), voice_id=TTS_CONFIG["voice_id"]
     )
 
-    llm = OpenAILLMService(api_key=os.getenv("OPENAI_API_KEY"), model="gpt-4o")
+    llm = OpenAILLMService(api_key=os.getenv(ENV_VARS["OPENAI_API_KEY"]), model=LLM_CONFIG["model"])
 
     messages = [
         {
             "role": "system",
-            "content": "You are a helpful LLM in a WebRTC call. Your goal is to demonstrate your capabilities in a succinct way. Your output will be converted to audio so don't include special characters in your answers. Respond to what the user said in a creative and helpful way.",
+            "content": SYSTEM_MESSAGES["recruiter_prompt"],
         },
     ]
 
@@ -78,22 +88,22 @@ async def main(transport: DailyTransport):
         ),
     )
 
-    @transport.event_handler("on_first_participant_joined")
+    @transport.event_handler(EVENT_HANDLERS["first_participant_joined"])
     async def on_first_participant_joined(transport, participant):
-        logger.info("First participant joined: {}", participant["id"])
+        logger.info(LOG_MESSAGES["first_participant_joined"], participant["id"])
         await transport.capture_participant_transcription(participant["id"])
         # Kick off the conversation.
         messages.append(
             {
                 "role": "system",
-                "content": "Please start with 'Hello World' and introduce yourself to the user.",
+                "content": SYSTEM_MESSAGES["start_conversation"],
             }
         )
         await task.queue_frames([LLMMessagesFrame(messages)])
 
-    @transport.event_handler("on_participant_left")
+    @transport.event_handler(EVENT_HANDLERS["participant_left"])
     async def on_participant_left(transport, participant, reason):
-        logger.info("Participant left: {}", participant)
+        logger.info(LOG_MESSAGES["participant_left"], participant)
         await task.cancel()
 
     runner = PipelineRunner()
@@ -110,12 +120,12 @@ async def bot(args: DailySessionArguments):
         body: The configuration object from the request body
         session_id: The session ID for logging
     """
-    logger.info(f"Bot process initialized {args.room_url} {args.token}")
+    logger.info(LOG_MESSAGES["bot_initialized"], args.room_url, args.token)
 
     transport = DailyTransport(
         args.room_url,
         args.token,
-        "Pipecat Bot",
+        BOT_NAMES["production"],
         DailyParams(
             audio_in_enabled=True,
             audio_out_enabled=True,
@@ -126,9 +136,9 @@ async def bot(args: DailySessionArguments):
 
     try:
         await main(transport)
-        logger.info("Bot process completed")
+        logger.info(LOG_MESSAGES["bot_completed"])
     except Exception as e:
-        logger.exception(f"Error in bot process: {str(e)}")
+        logger.exception(LOG_MESSAGES["bot_error"], str(e))
         raise
 
 
@@ -142,7 +152,7 @@ async def local_daily():
             transport = DailyTransport(
                 room_url,
                 token,
-                "Pipecat Local Bot",
+                BOT_NAMES["local"],
                 params=DailyParams(
                     audio_in_enabled=True,
                     audio_out_enabled=True,
@@ -151,12 +161,12 @@ async def local_daily():
                 ),
             )
 
-            logger.warning(f"Talk to your voice agent here: {room_url}")
+            logger.warning(LOG_MESSAGES["local_agent_url"], room_url)
             webbrowser.open(room_url)
 
             await main(transport)
     except Exception as e:
-        logger.exception(f"Error in local development mode: {e}")
+        logger.exception(LOG_MESSAGES["local_dev_error"], e)
 
 
 # Local development entry point
@@ -164,4 +174,4 @@ if LOCAL_RUN and __name__ == "__main__":
     try:
         asyncio.run(local_daily())
     except Exception as e:
-        logger.exception(f"Failed to run in local mode: {e}")
+        logger.exception(LOG_MESSAGES["local_run_failed"], e)

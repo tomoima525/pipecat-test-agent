@@ -1,4 +1,4 @@
-# Pipecat Cloud Starter Project
+# Pipecat
 
 [![Docs](https://img.shields.io/badge/Documentation-blue)](https://docs.pipecat.daily.co) [![Discord](https://img.shields.io/discord/1217145424381743145)](https://discord.gg/dailyco)
 
@@ -9,6 +9,7 @@ A template voice agent for [Pipecat Cloud](https://www.daily.co/products/pipecat
 ## Prerequisites
 
 - Python 3.10+
+- [uv](https://docs.astral.sh/uv/)
 - Linux, MacOS, or Windows Subsystem for Linux (WSL)
 - [Docker](https://www.docker.com) and a Docker repository (e.g., [Docker Hub](https://hub.docker.com))
 - A Docker Hub account (or other container registry account)
@@ -79,6 +80,12 @@ Then, launch the bot.py script locally:
 
 ```bash
 LOCAL_RUN=1 python bot.py
+```
+
+or record video locally:
+
+```bash
+LOCAL_RUN=1 RECORD_VIDEO=1 python bot.py
 ```
 
 ## Deploy & Run
@@ -182,15 +189,10 @@ pcc organizations keys use
 pcc agent start my-first-agent --use-daily
 ```
 
+or record video:
+
 This will return a URL, which you can use to connect to your running agent.
 
-## Documentation
-
-For more details on Pipecat Cloud and its capabilities:
-
-- [Pipecat Cloud Documentation](https://docs.pipecat.daily.co)
-- [Pipecat Project Documentation](https://docs.pipecat.ai)
-
-## Support
-
-Join our [Discord community](https://discord.gg/dailyco) for help and discussions.
+```bash
+pcc agent start my-first-agent --use-daily --daily-properties '{"enable_recording": "cloud"}'
+```
