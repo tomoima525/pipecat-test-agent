@@ -82,9 +82,14 @@ Then, launch the bot.py script locally:
 LOCAL_RUN=1 python bot.py
 ```
 
-or record video locally:
+or record video locally (requires S3 configuration):
 
 ```bash
+# Set required S3 environment variables in .env file:
+# BUCKET_NAME=your-bucket-name
+# BUCKET_REGION=us-west-2
+# ASSUME_ROLE_ARN=arn:aws:iam::123456789012:role/your-role
+
 LOCAL_RUN=1 RECORD_VIDEO=1 python bot.py
 ```
 
@@ -114,6 +119,11 @@ cp env.example .env
 # Edit .env to add your API keys:
 # CARTESIA_API_KEY=your_cartesia_key
 # OPENAI_API_KEY=your_openai_key
+
+# For video recording, also add S3 configuration:
+# BUCKET_NAME=your-bucket-name
+# BUCKET_REGION=us-west-2
+# ASSUME_ROLE_ARN=arn:aws:iam::123456789012:role/your-role
 
 # Create a secret set from your .env file
 pcc secrets set pipecat-test-agent-secrets --file .env
@@ -195,4 +205,27 @@ This will return a URL, which you can use to connect to your running agent.
 
 ```bash
 pcc agent start pipecat-test-agent --use-daily --daily-properties '{"enable_recording": "cloud"}'
+```
+
+Using custom S3 bucket:
+
+```bash
+pcc agent start pipecat-test-agent --use-daily --daily-properties \
+ '{"enable_recording": "cloud", "recordings_bucket": { "bucket_name": "your-bucket-name", "bucket_region": "us-west-2", "assume_role_arn": "arn:aws:iam::123456789012:role/your-role", "allow_api_access": true }}'
+```
+
+### 7. Check the recorded video
+
+```
+curl -H "Content-Type: application/json" \
+     -H "Authorization: Bearer $DAILY_API_KEY" \
+     https://api.daily.co/v1/recordings
+```
+
+```
+curl -H "Content-Type: application/json" \
+     -H "Authorization: Bearer $API_KEY" \
+     https://api.daily.co/v1/recordings/33282639-be65-4259-8759-dfae183acf37
+
+     {"id":"33282639-be65-4259-8759-dfae183acf37","room_name":"WCSU8hYZEqZ4Q3gozin1","start_ts":1751356291,"status":"finished","max_participants":2,"duration":63,"share_token":"QmAikMMERxCM","tracks":[],"s3key":"cloud-241a97110f7042e9b45c7218a9778611/WCSU8hYZEqZ4Q3gozin1/1751356291783","mtgSessionId":"8eaa662e-bff1-4831-8f37-e52c410ab926","isVttEnabled":false}
 ```

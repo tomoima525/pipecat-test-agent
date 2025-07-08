@@ -5,10 +5,14 @@
 #
 
 import os
+from dotenv import load_dotenv
 
 import aiohttp
 from fastapi import HTTPException
 from pipecat.transports.services.helpers.daily_rest import DailyRESTHelper, DailyRoomParams
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 async def configure(aiohttp_session: aiohttp.ClientSession):
@@ -33,7 +37,28 @@ async def configure_with_args(aiohttp_session: aiohttp.ClientSession = None):
     )
 
     if RECORD_VIDEO:
-        properties = {"enable_prejoin_ui": False, "enable_recording": "cloud"}
+        # Get S3 bucket configuration from environment variables
+        bucket_name = os.getenv("BUCKET_NAME")
+        bucket_region = os.getenv("BUCKET_REGION")
+        assume_role_arn = os.getenv("ASSUME_ROLE_ARN")
+        
+        if not bucket_name:
+            raise Exception("BUCKET_NAME environment variable is required when RECORD_VIDEO is enabled")
+        if not bucket_region:
+            raise Exception("BUCKET_REGION environment variable is required when RECORD_VIDEO is enabled")
+        if not assume_role_arn:
+            raise Exception("ASSUME_ROLE_ARN environment variable is required when RECORD_VIDEO is enabled")
+        
+        properties = {
+            "enable_prejoin_ui": False, 
+            "enable_recording": "cloud", 
+            "recordings_bucket": {
+                "bucket_name": bucket_name,
+                "bucket_region": bucket_region,
+                "assume_role_arn": assume_role_arn,
+                "allow_api_access": True
+            }
+        }
     else:
         properties = {"enable_prejoin_ui": False}
 
