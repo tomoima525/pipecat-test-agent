@@ -40,10 +40,23 @@ if LOCAL_RUN:
     import webbrowser
 
     try:
+        # Required to run local_runner.py
+        import sys
+        import os
+        sys.path.append(os.path.dirname(os.path.dirname(__file__)))
         from local_runner import configure
     except ImportError:
         logger.error(LOG_MESSAGES["import_error"])
 
+class RecordingState:
+    def __init__(self):
+        self.isRecording = False
+    
+    def start_recording(self):
+        self.isRecording = True
+    
+    def stop_recording(self):
+        self.isRecording = False
 
 async def main(transport: DailyTransport):
     """Main pipeline setup and execution function.
@@ -88,10 +101,14 @@ async def main(transport: DailyTransport):
         ),
     )
 
+    recording_state = RecordingState()
+
     @transport.event_handler(EVENT_HANDLERS["first_participant_joined"])
     async def on_first_participant_joined(transport, participant):
         logger.info(LOG_MESSAGES["first_participant_joined"], participant["id"])
+        await transport.start_recording()
         await transport.capture_participant_transcription(participant["id"])
+        recording_state.start_recording()
         # Kick off the conversation.
         messages.append(
             {
@@ -104,7 +121,23 @@ async def main(transport: DailyTransport):
     @transport.event_handler(EVENT_HANDLERS["participant_left"])
     async def on_participant_left(transport, participant, reason):
         logger.info(LOG_MESSAGES["participant_left"], participant)
+        if recording_state.isRecording:
+            await transport.stop_recording()
+            recording_state.stop_recording()
         await task.cancel()
+
+    @transport.event_handler(EVENT_HANDLERS["on_recording_started"])
+    async def on_recording_started(transport, status):
+        logger.info(LOG_MESSAGES["recording_started"], status)
+    
+    # https://reference-python.daily.co/api_reference.html#daily.EventHandler.on_recording_error
+    @transport.event_handler(EVENT_HANDLERS["on_recording_error"])
+    async def on_recording_error(transport, stream_id, message):
+        logger.error(LOG_MESSAGES["recording_error"], message)
+
+    @transport.event_handler(EVENT_HANDLERS["on_recording_stopped"])
+    async def on_recording_stopped(transport, status):
+        logger.info(LOG_MESSAGES["recording_stopped"], status)
 
     runner = PipelineRunner()
 

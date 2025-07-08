@@ -1,5 +1,5 @@
 agent_name = "pipecat-test-agent"
-image = "tomoima525/pipecat-test-agent:0.2"
+image = "tomoima525/pipecat-test-agent:0.4"
 secret_set = "pipecat-test-secrets"
 
 [scaling]

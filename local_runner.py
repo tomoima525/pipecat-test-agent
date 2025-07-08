@@ -17,6 +17,8 @@ async def configure(aiohttp_session: aiohttp.ClientSession):
 
 RECORD_VIDEO = os.getenv("RECORD_VIDEO")
 
+print("RECORD_VIDEO", RECORD_VIDEO)
+
 async def configure_with_args(aiohttp_session: aiohttp.ClientSession = None):
     key = os.getenv("DAILY_API_KEY")
     if not key:

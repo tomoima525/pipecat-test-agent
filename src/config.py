@@ -29,6 +29,9 @@ BOT_NAMES = {
 EVENT_HANDLERS = {
     "first_participant_joined": "on_first_participant_joined",
     "participant_left": "on_participant_left",
+    "on_recording_started": "on_recording_started",
+    "on_recording_error": "on_recording_error",
+    "on_recording_stopped": "on_recording_stopped",
 }
 
 # Log Messages
@@ -42,6 +45,9 @@ LOG_MESSAGES = {
     "local_agent_url": "Talk to your voice agent here: {}",
     "local_dev_error": "Error in local development mode: {}",
     "local_run_failed": "Failed to run in local mode: {}",
+    "recording_started": "Recording started: {}",
+    "recording_error": "Recording error: {}",
+    "recording_stopped": "Recording stopped: {}",
 }
 
 # System Messages
