@@ -92,3 +92,8 @@ cython_debug/
 
 # Pipecat cloud
 .pcc-deploy.toml
+
+
+# Claude Code
+
+.claude-code/settings.local.json
