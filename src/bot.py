@@ -107,7 +107,6 @@ async def main(transport: DailyTransport):
     async def on_first_participant_joined(transport: DailyTransport, participant):
         logger.info(LOG_MESSAGES["first_participant_joined"], participant["id"])
         # Room token is required for transcription
-        await transport.start_transcription()
         await transport.start_recording()
         await transport.capture_participant_transcription(participant["id"])
         recording_state.start_recording()

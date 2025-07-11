@@ -211,7 +211,7 @@ Using custom S3 bucket:
 
 ```bash
 pcc agent start pipecat-test-agent --use-daily --daily-properties \
- '{"enable_recording": "cloud", "recordings_bucket": { "bucket_name": "your-bucket-name", "bucket_region": "us-west-2", "assume_role_arn": "arn:aws:iam::123456789012:role/your-role", "allow_api_access": true }}'
+ '{"enable_recording": "cloud", "recordings_bucket": { "bucket_name": "your-bucket-name", "bucket_region": "us-west-2", "assume_role_arn": "arn:aws:iam::123456789012:role/your-role", "allow_api_access": true }, "transcription_bucket": { "bucket_name": "your-bucket-name", "bucket_region": "us-west-2", "assume_role_arn": "arn:aws:iam::123456789012:role/your-role", "allow_api_access": true }}'
 ```
 
 ### 7. Check the recorded video
@@ -228,4 +228,10 @@ curl -H "Content-Type: application/json" \
      https://api.daily.co/v1/recordings/33282639-be65-4259-8759-dfae183acf37
 
      {"id":"33282639-be65-4259-8759-dfae183acf37","room_name":"WCSU8hYZEqZ4Q3gozin1","start_ts":1751356291,"status":"finished","max_participants":2,"duration":63,"share_token":"QmAikMMERxCM","tracks":[],"s3key":"cloud-241a97110f7042e9b45c7218a9778611/WCSU8hYZEqZ4Q3gozin1/1751356291783","mtgSessionId":"8eaa662e-bff1-4831-8f37-e52c410ab926","isVttEnabled":false}
+```
+
+```
+curl -H "Content-Type: application/json" \
+     -H "Authorization: Bearer $API_KEY" \
+     https://api.daily.co/v1/recordings/0cb313e1-211f-4be0-833d-8c7305b19902/access-link
 ```
