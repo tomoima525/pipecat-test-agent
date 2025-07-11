@@ -104,8 +104,10 @@ async def main(transport: DailyTransport):
     recording_state = RecordingState()
 
     @transport.event_handler(EVENT_HANDLERS["first_participant_joined"])
-    async def on_first_participant_joined(transport, participant):
+    async def on_first_participant_joined(transport: DailyTransport, participant):
         logger.info(LOG_MESSAGES["first_participant_joined"], participant["id"])
+        # Room token is required for transcription
+        await transport.start_transcription()
         await transport.start_recording()
         await transport.capture_participant_transcription(participant["id"])
         recording_state.start_recording()
@@ -119,9 +121,10 @@ async def main(transport: DailyTransport):
         await task.queue_frames([LLMMessagesFrame(messages)])
 
     @transport.event_handler(EVENT_HANDLERS["participant_left"])
-    async def on_participant_left(transport, participant, reason):
+    async def on_participant_left(transport: DailyTransport, participant, reason):
         logger.info(LOG_MESSAGES["participant_left"], participant)
         if recording_state.isRecording:
+            await transport.stop_transcription()
             await transport.stop_recording()
             recording_state.stop_recording()
         await task.cancel()

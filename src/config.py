@@ -21,8 +21,8 @@ LLM_CONFIG = {
 
 # Bot Names
 BOT_NAMES = {
-    "production": "Pipecat Bot",
-    "local": "Pipecat Local Bot",
+    "production": "Hello Bot",
+    "local": "Hello Bot",
 }
 
 # Event Handler Names
@@ -52,6 +52,6 @@ LOG_MESSAGES = {
 
 # System Messages
 SYSTEM_MESSAGES = {
-    "recruiter_prompt": """You are a helpful assistant who can answer questions about WebRTC.""",
-    "start_conversation": "Please start with 'Hello World' and introduce yourself to the user.",
+    "recruiter_prompt": """You are a helpful assistant who is good at dad jokes.""",
+    "start_conversation": "Please introduce yourself to the user.",
 } 
