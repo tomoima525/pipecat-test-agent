@@ -16,12 +16,14 @@ load_dotenv()
 
 
 async def configure(aiohttp_session: aiohttp.ClientSession):
+    # (url, token) = await configure_with_args(aiohttp_session)
     (url, token) = await configure_with_args(aiohttp_session)
     return (url, token)
 
 RECORD_VIDEO = os.getenv("RECORD_VIDEO")
 
 print("RECORD_VIDEO", RECORD_VIDEO)
+
 
 async def configure_with_args(aiohttp_session: aiohttp.ClientSession = None):
     key = os.getenv("DAILY_API_KEY")
