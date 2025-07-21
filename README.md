@@ -79,7 +79,7 @@ uv pip install -r requirements.txt
 Then, launch the bot.py script locally:
 
 ```bash
-LOCAL_RUN=1 python bot.py
+LOCAL_RUN=1 python src/bot.py
 ```
 
 or record video locally (requires S3 configuration):
@@ -235,3 +235,25 @@ curl -H "Content-Type: application/json" \
      -H "Authorization: Bearer $API_KEY" \
      https://api.daily.co/v1/recordings/0cb313e1-211f-4be0-833d-8c7305b19902/access-link
 ```
+
+## Agent Launcher CLI
+
+The project includes an `agent_launcher.py` script that provides a convenient CLI for launching agents with custom configurations:
+
+```bash
+# Launch agent with default settings
+python agent_launcher.py
+
+# Launch agent with custom name and data
+python agent_launcher.py --agent-name test-agent --data='{"key": "hello"}'
+
+# Launch agent with complex data
+python agent_launcher.py --agent-name my-agent --data='{"user_id": "123", "context": "support"}'
+```
+
+### CLI Options
+
+- `--agent-name`: Name of the agent to launch (defaults to "recruiter")
+- `--data`: JSON data to pass to the agent session
+
+This launcher automatically configures recording and transcription using your S3 bucket settings from environment variables.
