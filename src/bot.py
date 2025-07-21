@@ -19,6 +19,8 @@ from pipecat.services.cartesia.tts import CartesiaTTSService
 from pipecat.services.openai.llm import OpenAILLMService
 from pipecat.transports.services.daily import DailyParams, DailyTransport
 from pipecatcloud.agent import DailySessionArguments
+from pydantic import BaseModel
+from typing import Optional
 
 from config import (
     ENV_VARS,
@@ -36,6 +38,7 @@ load_dotenv(override=True)
 # Check if we're in local development mode
 LOCAL_RUN = os.getenv(ENV_VARS["LOCAL_RUN"])
 if LOCAL_RUN:
+    import argparse
     import asyncio
     import webbrowser
 
@@ -48,6 +51,9 @@ if LOCAL_RUN:
     except ImportError:
         logger.error(LOG_MESSAGES["import_error"])
 
+class BodyRequest(BaseModel):
+    user_context: Optional[str] = None
+
 class RecordingState:
     def __init__(self):
         self.isRecording = False
@@ -58,7 +64,7 @@ class RecordingState:
     def stop_recording(self):
         self.isRecording = False
 
-async def main(transport: DailyTransport):
+async def main(transport: DailyTransport, user_context: Optional[str] = None):
     """Main pipeline setup and execution function.
 
     Args:
@@ -70,10 +76,14 @@ async def main(transport: DailyTransport):
 
     llm = OpenAILLMService(api_key=os.getenv(ENV_VARS["OPENAI_API_KEY"]), model=LLM_CONFIG["model"])
 
+    content = SYSTEM_MESSAGES["initial_system_prompt"]
+    if user_context:
+        content += f"\n\nUser context: {user_context}"
+
     messages = [
         {
             "role": "system",
-            "content": SYSTEM_MESSAGES["recruiter_prompt"],
+            "content": content,
         },
     ]
 
@@ -157,6 +167,10 @@ async def bot(args: DailySessionArguments):
     """
     logger.info(LOG_MESSAGES["bot_initialized"], args.room_url, args.token)
 
+    body = args.body
+    validated_body = BodyRequest.model_validate(body or {})
+    user_context = validated_body.user_context
+
     transport = DailyTransport(
         args.room_url,
         args.token,
@@ -170,7 +184,7 @@ async def bot(args: DailySessionArguments):
     )
 
     try:
-        await main(transport)
+        await main(transport, user_context)
         logger.info(LOG_MESSAGES["bot_completed"])
     except Exception as e:
         logger.exception(LOG_MESSAGES["bot_error"], str(e))
@@ -178,10 +192,18 @@ async def bot(args: DailySessionArguments):
 
 
 # Local development
-async def local_daily():
-    """Daily transport for local development."""
+async def local_daily(data: Optional[str] = None):
+    """Daily transport for local development.
+    
+    Args:
+        data: Optional data parameter to pass as user context
+    """
 
     try:
+        # Validate data using BodyRequest
+        validated_body = BodyRequest.model_validate({"user_context": data} if data else {})
+        user_context = validated_body.user_context
+
         async with aiohttp.ClientSession() as session:
             (room_url, token) = await configure(session)
             transport = DailyTransport(
@@ -199,7 +221,7 @@ async def local_daily():
             logger.warning(LOG_MESSAGES["local_agent_url"], room_url)
             webbrowser.open(room_url)
 
-            await main(transport)
+            await main(transport, user_context)
     except Exception as e:
         logger.exception(LOG_MESSAGES["local_dev_error"], e)
 
@@ -207,6 +229,10 @@ async def local_daily():
 # Local development entry point
 if LOCAL_RUN and __name__ == "__main__":
     try:
-        asyncio.run(local_daily())
+        parser = argparse.ArgumentParser(description="Local development for Pipecat agent")
+        parser.add_argument("--data", type=str, help="Data to pass as user context")
+        args = parser.parse_args()
+        
+        asyncio.run(local_daily(args.data))
     except Exception as e:
         logger.exception(LOG_MESSAGES["local_run_failed"], e)

@@ -245,10 +245,7 @@ The project includes an `agent_launcher.py` script that provides a convenient CL
 python agent_launcher.py
 
 # Launch agent with custom name and data
-python agent_launcher.py --agent-name test-agent --data='{"key": "hello"}'
-
-# Launch agent with complex data
-python agent_launcher.py --agent-name my-agent --data='{"user_id": "123", "context": "support"}'
+python agent_launcher.py --agent-name test-agent --data='{"user_context": "User name: John Doe,"}'
 ```
 
 ### CLI Options
