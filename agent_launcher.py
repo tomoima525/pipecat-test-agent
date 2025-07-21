@@ -10,7 +10,7 @@ from pipecatcloud.session import Session, SessionParams
 
 load_dotenv()
 
-async def launch_agent(agent_name: str="recruiter", data: dict = None):
+async def launch_agent(agent_name: str="pipecat-test-agent", data: dict = None):
     """
        Create a room using Agent Session fromp Pipecat Cloud
     """
