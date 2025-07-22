@@ -10,14 +10,19 @@ import aiohttp
 from dotenv import load_dotenv
 from loguru import logger
 from transcript_handler import TranscriptHandler
+from pipecat.adapters.schemas.function_schema import FunctionSchema
+from pipecat.adapters.schemas.tools_schema import ToolsSchema
 from pipecat.audio.vad.silero import SileroVADAnalyzer
+from pipecat.frames.frames import EndTaskFrame, TTSSpeakFrame
 from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.runner import PipelineRunner
 from pipecat.pipeline.task import PipelineParams, PipelineTask
 from pipecat.processors.aggregators.openai_llm_context import OpenAILLMContext
+from pipecat.processors.frame_processor import FrameDirection
 from pipecat.processors.transcript_processor import TranscriptProcessor
 from pipecat.services.cartesia.tts import CartesiaTTSService
 from pipecat.services.deepgram.stt import DeepgramSTTService
+from pipecat.services.llm_service import FunctionCallParams
 from pipecat.services.openai.llm import OpenAILLMService
 from pipecat.transports.services.daily import DailyParams, DailyTransport
 from pipecatcloud.agent import DailySessionArguments
@@ -66,6 +71,18 @@ class RecordingState:
     def stop_recording(self):
         self.isRecording = False
 
+end_conversation_function = FunctionSchema(
+    name="end_conversation",
+    description="End the call when the user says goodbye",
+    properties={},
+    required=[]
+)
+
+async def end_conversation(params: FunctionCallParams):
+    await params.llm.push_frame(TTSSpeakFrame("Have a nice day!"))
+
+    # Signal that the task should end after processing this frame
+    await params.llm.push_frame(EndTaskFrame(), FrameDirection.UPSTREAM)
 
 async def main(transport: DailyTransport, user_context: Optional[str] = None):
     """Main pipeline setup and execution function.
@@ -82,6 +99,9 @@ async def main(transport: DailyTransport, user_context: Optional[str] = None):
     )
 
     llm = OpenAILLMService(api_key=os.getenv(ENV_VARS["OPENAI_API_KEY"]), model=LLM_CONFIG["model"])
+    
+    # Register the function with the LLM
+    llm.register_function("end_conversation", end_conversation)
 
     content = SYSTEM_MESSAGES["initial_system_prompt"]
     if user_context:
@@ -94,7 +114,11 @@ async def main(transport: DailyTransport, user_context: Optional[str] = None):
         },
     ]
 
-    context = OpenAILLMContext(messages)
+    tools = ToolsSchema(standard_tools=[end_conversation_function])
+
+    # Setup as a tools
+    context = OpenAILLMContext(messages, tools=tools)
+    
     context_aggregator = llm.create_context_aggregator(context)
 
     # Transcript Processor

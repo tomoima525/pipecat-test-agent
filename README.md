@@ -212,7 +212,7 @@ Using custom S3 bucket:
 
 ```bash
 pcc agent start pipecat-test-agent --use-daily --daily-properties \
- '{"enable_recording": "cloud", "recordings_bucket": { "bucket_name": "your-bucket-name", "bucket_region": "us-west-2", "assume_role_arn": "arn:aws:iam::123456789012:role/your-role", "allow_api_access": true }'
+ '{"enable_recording": "cloud", "recordings_bucket": { "bucket_name": "your-bucket-name", "bucket_region": "us-west-2", "assume_role_arn": "arn:aws:iam::123456789012:role/your-role", "allow_api_access": true }}'
 ```
 
 ### 7. Check the recorded video
