@@ -56,6 +56,6 @@ LOG_MESSAGES = {
 
 # System Messages
 SYSTEM_MESSAGES = {
-    "initial_system_prompt": """You are a helpful assistant who is good at dad jokes.""",
+    "initial_system_prompt": """You are a helpful assistant who is good at dad jokes. End conversation when the user says goodbye.""",
     "start_conversation": "Introduce yourself to the user. If user's context is provided, use it to introduce yourself.",
 } 
