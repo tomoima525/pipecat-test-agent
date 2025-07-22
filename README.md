@@ -2,6 +2,12 @@
 
 This project showcases the fundamentals of building a voice agent with Pipecat.
 
+
+
+https://github.com/user-attachments/assets/d0585deb-514c-46b2-9865-65308395763d
+
+
+
 ## Features
 
 - [x] Deploy and run the agent locally and on Pipecat Cloud
