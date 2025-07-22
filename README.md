@@ -1,10 +1,13 @@
-# Pipecat
+# Pipecat Fundamentals
 
-[![Docs](https://img.shields.io/badge/Documentation-blue)](https://docs.pipecat.daily.co) [![Discord](https://img.shields.io/discord/1217145424381743145)](https://discord.gg/dailyco)
+This project showcases the fundamentals of building a voice agent with Pipecat.
 
-A template voice agent for [Pipecat Cloud](https://www.daily.co/products/pipecat-cloud/) that demonstrates building and deploying a conversational AI agent.
+## Features
 
-> **For a detailed step-by-step guide, see our [Quickstart Documentation](https://docs.pipecat.daily.co/quickstart).**
+- [x] Deploy and run the agent locally and on Pipecat Cloud
+- [x] Use Daily.co to record and store the video to S3
+- [x] Use Deepgram to transcribe the audio
+- [x] End conversation by Agent when necessary
 
 ## Prerequisites
 
@@ -19,16 +22,7 @@ A template voice agent for [Pipecat Cloud](https://www.daily.co/products/pipecat
 
 ## Get Started
 
-### 1. Get the starter project
-
-Clone the starter project from GitHub:
-
-```bash
-git clone https://github.com/daily-co/pipecat-cloud-starter
-cd pipecat-cloud-starter
-```
-
-### 2. Set up your Python environment
+### 1. Set up your Python environment
 
 We recommend using [uv](https://docs.astral.sh/uv/) for fast Python package management.
 
@@ -40,7 +34,7 @@ uv sync
 uv tool install pipecatcloud
 ```
 
-Alternatively, you can use a virtual environment:
+Use a virtual environment:
 
 ```bash
 # Create a virtual environment
@@ -66,6 +60,7 @@ This starter requires the following API keys:
 - **OpenAI API Key**: Get from [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
 - **Cartesia API Key**: Get from [play.cartesia.ai/keys](https://play.cartesia.ai/keys)
 - **Daily API Key**: Automatically provided through your Pipecat Cloud account
+- **Deepgram API Key**: Get from Deepgram
 
 ### 5. Configure to run locally (optional)
 
@@ -116,15 +111,10 @@ LOCAL_RUN=1 RECORD_VIDEO=1 uv run python src/bot.py
 
 ### 1. Build and push your Docker image
 
+- Image name defaults to `pipecat-test-agent`
+
 ```bash
-# Build the image (targeting ARM architecture for cloud deployment)
-docker build --platform=linux/arm64 -t pipecat-test-agent:latest .
-
-# Tag with your Docker username and version
-docker tag pipecat-test-agent:latest your-username/pipecat-test-agent:0.1
-
-# Push to Docker Hub
-docker push your-username/pipecat-test-agent:0.1
+./build_and_push.sh 0.x # Build version
 ```
 
 ### 2. Create a secret set for your API keys
@@ -284,7 +274,7 @@ This project uses [Ruff](https://docs.astral.sh/ruff/) for fast Python linting a
 # Check code style and lint issues
 uv run ruff check .
 
-# Auto-fix issues where possible  
+# Auto-fix issues where possible
 uv run ruff check --fix .
 
 # Format code (ruff's built-in formatter)
