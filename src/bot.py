@@ -9,13 +9,15 @@ import os
 import aiohttp
 from dotenv import load_dotenv
 from loguru import logger
+from transcript_handler import TranscriptHandler
 from pipecat.audio.vad.silero import SileroVADAnalyzer
-from pipecat.frames.frames import LLMMessagesFrame
 from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.runner import PipelineRunner
 from pipecat.pipeline.task import PipelineParams, PipelineTask
 from pipecat.processors.aggregators.openai_llm_context import OpenAILLMContext
+from pipecat.processors.transcript_processor import TranscriptProcessor
 from pipecat.services.cartesia.tts import CartesiaTTSService
+from pipecat.services.deepgram.stt import DeepgramSTTService
 from pipecat.services.openai.llm import OpenAILLMService
 from pipecat.transports.services.daily import DailyParams, DailyTransport
 from pipecatcloud.agent import DailySessionArguments
@@ -64,6 +66,7 @@ class RecordingState:
     def stop_recording(self):
         self.isRecording = False
 
+
 async def main(transport: DailyTransport, user_context: Optional[str] = None):
     """Main pipeline setup and execution function.
 
@@ -72,6 +75,10 @@ async def main(transport: DailyTransport, user_context: Optional[str] = None):
     """
     tts = CartesiaTTSService(
         api_key=os.getenv(ENV_VARS["CARTESIA_API_KEY"]), voice_id=TTS_CONFIG["voice_id"]
+    )
+
+    sst = DeepgramSTTService(
+        api_key=os.getenv(ENV_VARS["DEEPGRAM_API_KEY"]),
     )
 
     llm = OpenAILLMService(api_key=os.getenv(ENV_VARS["OPENAI_API_KEY"]), model=LLM_CONFIG["model"])
@@ -90,13 +97,22 @@ async def main(transport: DailyTransport, user_context: Optional[str] = None):
     context = OpenAILLMContext(messages)
     context_aggregator = llm.create_context_aggregator(context)
 
+    # Transcript Processor
+    transcript = TranscriptProcessor()
+
+    # Transcript Handler
+    transcript_handler = TranscriptHandler()
+
     pipeline = Pipeline(
         [
             transport.input(),
+            sst,
+            transcript.user(),
             context_aggregator.user(),
             llm,
             tts,
             transport.output(),
+            transcript.assistant(),
             context_aggregator.assistant(),
         ]
     )
@@ -113,27 +129,28 @@ async def main(transport: DailyTransport, user_context: Optional[str] = None):
 
     recording_state = RecordingState()
 
-    @transport.event_handler(EVENT_HANDLERS["first_participant_joined"])
-    async def on_first_participant_joined(transport: DailyTransport, participant):
-        logger.info(LOG_MESSAGES["first_participant_joined"], participant["id"])
-        # Room token is required for transcription
+
+
+    @transport.event_handler(EVENT_HANDLERS["on_client_connected"])
+    async def on_client_connected(transport: DailyTransport, client):
+        logger.info(LOG_MESSAGES["on_client_connected"], client["id"])
         await transport.start_recording()
-        await transport.capture_participant_transcription(participant["id"])
         recording_state.start_recording()
         # Kick off the conversation.
-        messages.append(
-            {
-                "role": "system",
-                "content": SYSTEM_MESSAGES["start_conversation"],
-            }
-        )
-        await task.queue_frames([LLMMessagesFrame(messages)])
+       # messages.append(
+       #     {
+       #         "role": "system",
+       #         "content": SYSTEM_MESSAGES["start_conversation"],
+       #     }
+       # )
+       # await task.queue_frames([LLMMessagesFrame(messages)])
+        # Empty frame to start the conversation
+        await task.queue_frames([context_aggregator.user().get_context_frame()])
 
-    @transport.event_handler(EVENT_HANDLERS["participant_left"])
-    async def on_participant_left(transport: DailyTransport, participant, reason):
-        logger.info(LOG_MESSAGES["participant_left"], participant)
+    @transport.event_handler(EVENT_HANDLERS["on_client_disconnected"])
+    async def on_client_disconnected(transport: DailyTransport, client):
+        logger.info(LOG_MESSAGES["on_client_disconnected"], client)
         if recording_state.isRecording:
-            await transport.stop_transcription()
             await transport.stop_recording()
             recording_state.stop_recording()
         await task.cancel()
@@ -150,6 +167,11 @@ async def main(transport: DailyTransport, user_context: Optional[str] = None):
     @transport.event_handler(EVENT_HANDLERS["on_recording_stopped"])
     async def on_recording_stopped(transport, status):
         logger.info(LOG_MESSAGES["recording_stopped"], status)
+    
+    # Register event handler for transcript updates
+    @transcript.event_handler("on_transcript_update")
+    async def on_transcript_update(processor, frame):
+        await transcript_handler.on_transcript_update(processor, frame)
 
     runner = PipelineRunner()
 

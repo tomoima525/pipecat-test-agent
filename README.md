@@ -66,6 +66,7 @@ You can test your agent locally before deploying to Pipecat Cloud:
 export CARTESIA_API_KEY="your_cartesia_key"
 export DAILY_API_KEY="your_daily_key"
 export OPENAI_API_KEY="your_openai_key"
+export DEEPGRAM_API_KEY="your_deepgram_key"
 ```
 
 > Your `DAILY_API_KEY` can be found at [https://pipecat.daily.co](https://pipecat.daily.co) under the `Settings` in the `Daily (WebRTC)` tab.
@@ -211,7 +212,7 @@ Using custom S3 bucket:
 
 ```bash
 pcc agent start pipecat-test-agent --use-daily --daily-properties \
- '{"enable_recording": "cloud", "recordings_bucket": { "bucket_name": "your-bucket-name", "bucket_region": "us-west-2", "assume_role_arn": "arn:aws:iam::123456789012:role/your-role", "allow_api_access": true }, "transcription_bucket": { "bucket_name": "your-bucket-name", "bucket_region": "us-west-2", "assume_role_arn": "arn:aws:iam::123456789012:role/your-role", "allow_api_access": true }}'
+ '{"enable_recording": "cloud", "recordings_bucket": { "bucket_name": "your-bucket-name", "bucket_region": "us-west-2", "assume_role_arn": "arn:aws:iam::123456789012:role/your-role", "allow_api_access": true }'
 ```
 
 ### 7. Check the recorded video

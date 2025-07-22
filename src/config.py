@@ -6,6 +6,7 @@ Configuration file containing all strings and constants used in the bot applicat
 ENV_VARS = {
     "LOCAL_RUN": "LOCAL_RUN",
     "CARTESIA_API_KEY": "CARTESIA_API_KEY",
+    "DEEPGRAM_API_KEY": "DEEPGRAM_API_KEY",
     "OPENAI_API_KEY": "OPENAI_API_KEY",
 }
 
@@ -29,8 +30,9 @@ BOT_NAMES = {
 
 # Event Handler Names
 EVENT_HANDLERS = {
-    "first_participant_joined": "on_first_participant_joined",
-    "participant_left": "on_participant_left",
+    "on_first_participant_joined": "on_first_participant_joined",
+    "on_client_connected": "on_client_connected",
+    "on_client_disconnected": "on_client_disconnected",
     "on_recording_started": "on_recording_started",
     "on_recording_error": "on_recording_error",
     "on_recording_stopped": "on_recording_stopped",
@@ -39,8 +41,8 @@ EVENT_HANDLERS = {
 # Log Messages
 LOG_MESSAGES = {
     "import_error": "Could not import local_runner module. Local development mode may not work.",
-    "first_participant_joined": "First participant joined: {}",
-    "participant_left": "Participant left: {}",
+    "on_client_connected": "First participant joined: {}",
+    "on_client_disconnected": "Participant left: {}",
     "bot_initialized": "Bot process initialized {} {}",
     "bot_completed": "Bot process completed",
     "bot_error": "Error in bot process: {}",

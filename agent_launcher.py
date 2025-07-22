@@ -47,7 +47,9 @@ async def launch_agent(agent_name: str="pipecat-test-agent", data: dict = None):
             "assume_role_arn": assume_role_arn,
             "allow_api_access": True
         },
-        "transcription_bucket": transcription_bucket
+        # https://docs.daily.co/guides/products/transcription#enabling-custom-buckets-to-store-transcriptions
+        "enable_transcription_storage": True,
+        "transcription_bucket": transcription_bucket,
     }
     try:
         session = Session(
