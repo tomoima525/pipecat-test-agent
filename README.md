@@ -30,7 +30,17 @@ cd pipecat-cloud-starter
 
 ### 2. Set up your Python environment
 
-We recommend using a virtual environment to manage your Python dependencies.
+We recommend using [uv](https://docs.astral.sh/uv/) for fast Python package management.
+
+```bash
+# Install dependencies using uv
+uv sync
+
+# Install the Pipecat Cloud CLI globally
+uv tool install pipecatcloud
+```
+
+Alternatively, you can use a virtual environment:
 
 ```bash
 # Create a virtual environment
@@ -74,12 +84,20 @@ export DEEPGRAM_API_KEY="your_deepgram_key"
 First install requirements:
 
 ```bash
+# Using uv (recommended)
+uv sync
+
+# Or with pip
 uv pip install -r requirements.txt
 ```
 
 Then, launch the bot.py script locally:
 
 ```bash
+# Using uv (recommended)
+LOCAL_RUN=1 uv run python src/bot.py
+
+# Or with regular python
 LOCAL_RUN=1 python src/bot.py
 ```
 
@@ -91,7 +109,7 @@ or record video locally (requires S3 configuration):
 # BUCKET_REGION=us-west-2
 # ASSUME_ROLE_ARN=arn:aws:iam::123456789012:role/your-role
 
-LOCAL_RUN=1 RECORD_VIDEO=1 python bot.py
+LOCAL_RUN=1 RECORD_VIDEO=1 uv run python src/bot.py
 ```
 
 ## Deploy & Run
@@ -243,10 +261,10 @@ The project includes an `agent_launcher.py` script that provides a convenient CL
 
 ```bash
 # Launch agent with default settings
-python agent_launcher.py
+uv run python agent_launcher.py
 
 # Launch agent with custom name and data
-python agent_launcher.py --agent-name test-agent --data='{"user_context": "User name: John Doe,"}'
+uv run python agent_launcher.py --agent-name test-agent --data='{"user_context": "User name: John Doe,"}'
 ```
 
 ### CLI Options
@@ -255,3 +273,33 @@ python agent_launcher.py --agent-name test-agent --data='{"user_context": "User 
 - `--data`: JSON data to pass to the agent session
 
 This launcher automatically configures recording and transcription using your S3 bucket settings from environment variables.
+
+## Development
+
+### Code Linting
+
+This project uses [Ruff](https://docs.astral.sh/ruff/) for fast Python linting and formatting:
+
+```bash
+# Check code style and lint issues
+uv run ruff check .
+
+# Auto-fix issues where possible  
+uv run ruff check --fix .
+
+# Format code (ruff's built-in formatter)
+uv run ruff format .
+```
+
+Alternatively, if you have ruff installed globally:
+
+```bash
+# Check code
+ruff check .
+
+# Fix issues
+ruff check --fix .
+
+# Format code
+ruff format .
+```

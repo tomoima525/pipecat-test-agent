@@ -9,7 +9,6 @@ import os
 import aiohttp
 from dotenv import load_dotenv
 from loguru import logger
-from transcript_handler import TranscriptHandler
 from pipecat.adapters.schemas.function_schema import FunctionSchema
 from pipecat.adapters.schemas.tools_schema import ToolsSchema
 from pipecat.audio.vad.silero import SileroVADAnalyzer
@@ -27,17 +26,17 @@ from pipecat.services.openai.llm import OpenAILLMService
 from pipecat.transports.services.daily import DailyParams, DailyTransport
 from pipecatcloud.agent import DailySessionArguments
 from pydantic import BaseModel
-from typing import Optional
 
 from config import (
-    ENV_VARS,
-    TTS_CONFIG,
-    LLM_CONFIG,
     BOT_NAMES,
+    ENV_VARS,
     EVENT_HANDLERS,
+    LLM_CONFIG,
     LOG_MESSAGES,
     SYSTEM_MESSAGES,
+    TTS_CONFIG,
 )
+from transcript_handler import TranscriptHandler
 
 # Load environment variables
 load_dotenv(override=True)
@@ -51,32 +50,37 @@ if LOCAL_RUN:
 
     try:
         # Required to run local_runner.py
-        import sys
         import os
+        import sys
+
         sys.path.append(os.path.dirname(os.path.dirname(__file__)))
         from local_runner import configure
     except ImportError:
         logger.error(LOG_MESSAGES["import_error"])
 
+
 class BodyRequest(BaseModel):
-    user_context: Optional[str] = None
+    user_context: str | None = None
+
 
 class RecordingState:
     def __init__(self):
         self.isRecording = False
-    
+
     def start_recording(self):
         self.isRecording = True
-    
+
     def stop_recording(self):
         self.isRecording = False
+
 
 end_conversation_function = FunctionSchema(
     name="end_conversation",
     description="End the call when the user says goodbye",
     properties={},
-    required=[]
+    required=[],
 )
+
 
 async def end_conversation(params: FunctionCallParams):
     await params.llm.push_frame(TTSSpeakFrame("Have a nice day!"))
@@ -84,7 +88,8 @@ async def end_conversation(params: FunctionCallParams):
     # Signal that the task should end after processing this frame
     await params.llm.push_frame(EndTaskFrame(), FrameDirection.UPSTREAM)
 
-async def main(transport: DailyTransport, user_context: Optional[str] = None):
+
+async def main(transport: DailyTransport, user_context: str | None = None):
     """Main pipeline setup and execution function.
 
     Args:
@@ -98,8 +103,10 @@ async def main(transport: DailyTransport, user_context: Optional[str] = None):
         api_key=os.getenv(ENV_VARS["DEEPGRAM_API_KEY"]),
     )
 
-    llm = OpenAILLMService(api_key=os.getenv(ENV_VARS["OPENAI_API_KEY"]), model=LLM_CONFIG["model"])
-    
+    llm = OpenAILLMService(
+        api_key=os.getenv(ENV_VARS["OPENAI_API_KEY"]), model=LLM_CONFIG["model"]
+    )
+
     # Register the function with the LLM
     llm.register_function("end_conversation", end_conversation)
 
@@ -118,7 +125,7 @@ async def main(transport: DailyTransport, user_context: Optional[str] = None):
 
     # Setup as a tools
     context = OpenAILLMContext(messages, tools=tools)
-    
+
     context_aggregator = llm.create_context_aggregator(context)
 
     # Transcript Processor
@@ -153,21 +160,19 @@ async def main(transport: DailyTransport, user_context: Optional[str] = None):
 
     recording_state = RecordingState()
 
-
-
     @transport.event_handler(EVENT_HANDLERS["on_client_connected"])
     async def on_client_connected(transport: DailyTransport, client):
         logger.info(LOG_MESSAGES["on_client_connected"], client["id"])
         await transport.start_recording()
         recording_state.start_recording()
         # Kick off the conversation.
-       # messages.append(
-       #     {
-       #         "role": "system",
-       #         "content": SYSTEM_MESSAGES["start_conversation"],
-       #     }
-       # )
-       # await task.queue_frames([LLMMessagesFrame(messages)])
+        # messages.append(
+        #     {
+        #         "role": "system",
+        #         "content": SYSTEM_MESSAGES["start_conversation"],
+        #     }
+        # )
+        # await task.queue_frames([LLMMessagesFrame(messages)])
         # Empty frame to start the conversation
         await task.queue_frames([context_aggregator.user().get_context_frame()])
 
@@ -182,7 +187,7 @@ async def main(transport: DailyTransport, user_context: Optional[str] = None):
     @transport.event_handler(EVENT_HANDLERS["on_recording_started"])
     async def on_recording_started(transport, status):
         logger.info(LOG_MESSAGES["recording_started"], status)
-    
+
     # https://reference-python.daily.co/api_reference.html#daily.EventHandler.on_recording_error
     @transport.event_handler(EVENT_HANDLERS["on_recording_error"])
     async def on_recording_error(transport, stream_id, message):
@@ -191,7 +196,7 @@ async def main(transport: DailyTransport, user_context: Optional[str] = None):
     @transport.event_handler(EVENT_HANDLERS["on_recording_stopped"])
     async def on_recording_stopped(transport, status):
         logger.info(LOG_MESSAGES["recording_stopped"], status)
-    
+
     # Register event handler for transcript updates
     @transcript.event_handler("on_transcript_update")
     async def on_transcript_update(processor, frame):
@@ -238,16 +243,18 @@ async def bot(args: DailySessionArguments):
 
 
 # Local development
-async def local_daily(data: Optional[str] = None):
+async def local_daily(data: str | None = None):
     """Daily transport for local development.
-    
+
     Args:
         data: Optional data parameter to pass as user context
     """
 
     try:
         # Validate data using BodyRequest
-        validated_body = BodyRequest.model_validate({"user_context": data} if data else {})
+        validated_body = BodyRequest.model_validate(
+            {"user_context": data} if data else {}
+        )
         user_context = validated_body.user_context
 
         async with aiohttp.ClientSession() as session:
@@ -275,10 +282,12 @@ async def local_daily(data: Optional[str] = None):
 # Local development entry point
 if LOCAL_RUN and __name__ == "__main__":
     try:
-        parser = argparse.ArgumentParser(description="Local development for Pipecat agent")
+        parser = argparse.ArgumentParser(
+            description="Local development for Pipecat agent"
+        )
         parser.add_argument("--data", type=str, help="Data to pass as user context")
         args = parser.parse_args()
-        
+
         asyncio.run(local_daily(args.data))
     except Exception as e:
         logger.exception(LOG_MESSAGES["local_run_failed"], e)

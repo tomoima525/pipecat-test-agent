@@ -13,7 +13,7 @@ ENV_VARS = {
 # TTS Configuration
 TTS_CONFIG = {
     # My voice clone
-    #"voice_id": "efe5d4cb-be7a-4aa6-9294-5ea6b762f837",
+    # "voice_id": "efe5d4cb-be7a-4aa6-9294-5ea6b762f837",
     "voice_id": "78ab82d5-25be-4f7d-82b3-7ad64e5b85b2",
 }
 
@@ -58,4 +58,4 @@ LOG_MESSAGES = {
 SYSTEM_MESSAGES = {
     "initial_system_prompt": """You are a helpful assistant who is good at dad jokes. End conversation when the user says goodbye.""",
     "start_conversation": "Introduce yourself to the user. If user's context is provided, use it to introduce yourself.",
-} 
+}

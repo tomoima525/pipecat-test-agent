@@ -5,11 +5,14 @@
 #
 
 import os
-from dotenv import load_dotenv
 
 import aiohttp
+from dotenv import load_dotenv
 from fastapi import HTTPException
-from pipecat.transports.services.helpers.daily_rest import DailyRESTHelper, DailyRoomParams
+from pipecat.transports.services.helpers.daily_rest import (
+    DailyRESTHelper,
+    DailyRoomParams,
+)
 
 # Load environment variables from .env file
 load_dotenv()
@@ -19,6 +22,7 @@ async def configure(aiohttp_session: aiohttp.ClientSession):
     # (url, token) = await configure_with_args(aiohttp_session)
     (url, token) = await configure_with_args(aiohttp_session)
     return (url, token)
+
 
 RECORD_VIDEO = os.getenv("RECORD_VIDEO")
 
@@ -43,11 +47,17 @@ async def configure_with_args(aiohttp_session: aiohttp.ClientSession = None):
     assume_role_arn = os.getenv("ASSUME_ROLE_ARN")
 
     if not bucket_name:
-        raise Exception("BUCKET_NAME environment variable is required when RECORD_VIDEO is enabled")
+        raise Exception(
+            "BUCKET_NAME environment variable is required when RECORD_VIDEO is enabled"
+        )
     if not bucket_region:
-        raise Exception("BUCKET_REGION environment variable is required when RECORD_VIDEO is enabled")
+        raise Exception(
+            "BUCKET_REGION environment variable is required when RECORD_VIDEO is enabled"
+        )
     if not assume_role_arn:
-        raise Exception("ASSUME_ROLE_ARN environment variable is required when RECORD_VIDEO is enabled")
+        raise Exception(
+            "ASSUME_ROLE_ARN environment variable is required when RECORD_VIDEO is enabled"
+        )
 
     transcription_bucket_name = bucket_name
     transcription_bucket_region = bucket_region
@@ -57,30 +67,31 @@ async def configure_with_args(aiohttp_session: aiohttp.ClientSession = None):
         "bucket_name": transcription_bucket_name,
         "bucket_region": transcription_bucket_region,
         "assume_role_arn": transcription_assume_role_arn,
-        "allow_api_access": True
+        "allow_api_access": True,
     }
 
     if RECORD_VIDEO == "True":
         properties = {
-            "enable_prejoin_ui": False, 
-            "enable_recording": "cloud", 
+            "enable_prejoin_ui": False,
+            "enable_recording": "cloud",
             "recordings_bucket": {
                 "bucket_name": bucket_name,
                 "bucket_region": bucket_region,
                 "assume_role_arn": assume_role_arn,
-                "allow_api_access": True
+                "allow_api_access": True,
             },
             # It's not supported on local runner, but I'll leave it here for the consistency with the agent_launcher.py
             # https://docs.daily.co/guides/products/transcription#enabling-custom-buckets-to-store-transcriptions
-            "enable_transcription_storage": True,   
-            "transcription_bucket": transcription_bucket
+            "enable_transcription_storage": True,
+            "transcription_bucket": transcription_bucket,
         }
     else:
-        properties = {"enable_prejoin_ui": False, "transcription_bucket": transcription_bucket}
+        properties = {
+            "enable_prejoin_ui": False,
+            "transcription_bucket": transcription_bucket,
+        }
 
-    room = await daily_rest_helper.create_room(
-        DailyRoomParams(properties=properties)
-    )
+    room = await daily_rest_helper.create_room(DailyRoomParams(properties=properties))
     if not room.url:
         raise HTTPException(status_code=500, detail="Failed to create room")
 

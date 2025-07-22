@@ -1,7 +1,7 @@
-from typing import Optional, List
 from loguru import logger
-from pipecat.processors.transcript_processor import TranscriptProcessor
 from pipecat.frames.frames import TranscriptionMessage, TranscriptionUpdateFrame
+from pipecat.processors.transcript_processor import TranscriptProcessor
+
 
 class TranscriptHandler:
     """Handles real-time transcript processing and output.
@@ -14,14 +14,14 @@ class TranscriptHandler:
         output_file: Optional path to file where transcript is saved. If None, outputs to log only.
     """
 
-    def __init__(self, output_file: Optional[str] = None):
+    def __init__(self, output_file: str | None = None):
         """Initialize handler with optional file output.
 
         Args:
             output_file: Path to output file. If None, outputs to log only.
         """
-        self.messages: List[TranscriptionMessage] = []
-        self.output_file: Optional[str] = output_file
+        self.messages: list[TranscriptionMessage] = []
+        self.output_file: str | None = output_file
         logger.debug(
             f"TranscriptHandler initialized {'with output_file=' + output_file if output_file else 'with log output only'}"
         )
@@ -57,12 +57,14 @@ class TranscriptHandler:
             processor: The TranscriptProcessor that emitted the update
             frame: TranscriptionUpdateFrame containing new messages
         """
-        logger.debug(f"Received transcript update with {len(frame.messages)} new messages")
+        logger.debug(
+            f"Received transcript update with {len(frame.messages)} new messages"
+        )
 
         for msg in frame.messages:
             self.messages.append(msg)
             await self.save_message(msg)
-    
+
     async def store_transcript(self):
         """Store the transcript in a file."""
         with open(self.output_file, "w", encoding="utf-8") as f:
