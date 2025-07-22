@@ -1,9 +1,6 @@
 {
   "permissions": {
-    "allow": [
-      "Bash(uv run black:*)",
-      "Bash(black:*)"
-    ],
+    "allow": ["Bash(uv run ruff:*)", "Bash(ruff:*)"],
     "deny": []
   }
 }
