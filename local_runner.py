@@ -60,8 +60,7 @@ async def configure_with_args(aiohttp_session: aiohttp.ClientSession = None):
         "allow_api_access": True
     }
 
-    if RECORD_VIDEO == True:
-        
+    if RECORD_VIDEO == "True":
         properties = {
             "enable_prejoin_ui": False, 
             "enable_recording": "cloud", 
@@ -71,6 +70,9 @@ async def configure_with_args(aiohttp_session: aiohttp.ClientSession = None):
                 "assume_role_arn": assume_role_arn,
                 "allow_api_access": True
             },
+            # It's not supported on local runner, but I'll leave it here for the consistency with the agent_launcher.py
+            # https://docs.daily.co/guides/products/transcription#enabling-custom-buckets-to-store-transcriptions
+            "enable_transcription_storage": True,   
             "transcription_bucket": transcription_bucket
         }
     else:
